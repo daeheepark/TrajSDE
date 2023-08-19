@@ -1,0 +1,1 @@
+enc_hivt_nusargo_grid: nuscenes, argoverse 데이터셋 둘 다 학습하기 위한 인코더, HIVT 기본 인코더 사용.

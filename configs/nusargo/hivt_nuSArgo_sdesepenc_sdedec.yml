@@ -1,0 +1,138 @@
+training_specific:
+  lr: 0.001
+  weight_decay: 0.0007
+  T_max: 100
+  hivt_optimizer: true
+  nodecay: false
+  max_epochs: 100
+
+model_specific:
+  file_path: models/model_base_mix_sde.py
+  module_name: PredictionModelSDENet
+  kwargs:
+    dataset: &dataset nuScenes
+    ref_time: &ref_time 20
+    historical_steps: &historical_steps 21
+    future_steps: &future_steps 60
+    num_modes: &num_modes 10
+    rotate: &rotate true
+    parallel: &parallel true
+    only_agent: false
+    is_gtabs: &is_gtabs true
+    is_gtabs: true
+    
+encoder:
+  file_path: models/encoders/enc_hivt_nusargo_sde_sep.py
+  module_name: LocalEncoderSDESepPara
+  kwargs:
+    max_past_t: 2
+    historical_steps: *historical_steps
+    node_dim: &node_dim 2
+    edge_dim: &edge_dim 2
+    embed_dim: &embed_dim 64
+    num_heads: &num_heads 8
+    dropout: &dropout 0.1
+    local_radius: &local_radius 50
+    parallel: *parallel
+    input_diff: &input_diff true
+    minimum_step: &step_size 0.1
+    ref_time: *ref_time
+    run_backwards: true
+    adjoint: false
+    rtol: &rtol 0.001
+    atol: &atol 0.001
+    method: euler
+    adaptive: false
+    
+
+aggregator:
+  file_path: models/aggregators/agg_hivt.py
+  module_name: GlobalInteractor
+  kwargs: 
+    historical_steps: *historical_steps
+    embed_dim: *embed_dim
+    edge_dim: *edge_dim
+    num_modes: *num_modes
+    num_heads: *num_heads
+    num_layers: &num_global_layers 3
+    dropout: *dropout
+    rotate: *rotate
+
+decoder:
+  file_path: models/decoders/dec_hivt_nusargo_sde.py
+  module_name: SDEDecoder
+  kwargs:
+    local_channels: *embed_dim
+    global_channels: *embed_dim
+    future_steps: *future_steps
+    num_modes: *num_modes
+    max_fut_t: 6
+    ode_func_layers: 3
+    uncertain: True
+    min_scale: 0.001
+    rtol: *rtol
+    atol: *atol
+    min_stepsize: *step_size
+    method: euler
+    
+losses: ['losses/L2.py', 'losses/diff_BCE.py']
+losses_module: ['L2', 'DiffBCE']
+loss_weights: [1, 1]
+loss_args:
+  - reduction: mean
+  - reduction: mean
+
+metrics: ['metrics/ade_t.py', 'metrics/fde_t.py', 'metrics/mr_t.py']
+metrics_module: ['ADE_T', 'FDE_T', 'MR_T']
+metric_args:
+  - dataset: *dataset
+    end_idcs: [59, 29]
+    sources: [0,1]
+  - dataset: *dataset
+    end_idcs: [59, 29]
+    sources: [0,1]
+  - dataset: *dataset
+    end_idcs: [59, 29]
+    sources: [0,1]
+
+datamodule_specific:
+  file_path: dataset/Datamodule_nuargo_mix.py
+  module_name: DataModuleNuArgoMix
+  kwargs:
+    nu_root: data/nuScenes
+    Argo_root: data/argodataset
+    nu_dir: preprocessed/nuScenes_hivt
+    Argo_dir: preprocessed/Argoverse
+    train_batch_size: 256
+    val_batch_size: 256
+    num_workers: 32
+    dataset_file_path: dataset/nuScenes_Argoerse/nuScenes_Argoverse.py
+    dataset_module_name: nuArgoDataset
+    shuffle: true
+    pin_memory: true
+    persistent_workers: true
+    tr_dataset_args:
+      type: grid
+      nus: true
+      Argo: true
+      ref_time: *ref_time
+      random_flip: true
+      random_rotate: false
+      is_gtabs: *is_gtabs
+    val_dataset_args:
+      type: grid
+      nus: true
+      Argo: false
+      ref_time: *ref_time
+      random_flip: false
+      random_rotate: false
+      is_gtabs: *is_gtabs
+    test_dataset_args:
+      type: grid
+      nus: true
+      Argo: false
+      ref_time: *ref_time
+      random_flip: false
+      random_rotate: false
+      is_gtabs: *is_gtabs
+

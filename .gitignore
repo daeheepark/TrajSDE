@@ -1,0 +1,9 @@
+*tmp*
+*.pyc
+data/**
+preprocessed/**
+checkpoints*/**
+.vscode
+ray_results*
+**2304**
+dataset/Waymo/idcs
