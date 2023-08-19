@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--config', type=str, required=True)
     parser.add_argument('-n', '--name', type=str, required=True)
     parser.add_argument('-d', '--description', type=str, help='description of the experiment', default='')
-    parser.add_argument('-s', '--save_dir', type=str, default='checkpoints/nusargo_ft')
+    parser.add_argument('-s', '--save_dir', type=str, default='checkpoints/nuSArgo')
 
     parser.add_argument('--ckpt', type=str, default=None)
     parser.add_argument('--wonly', action='store_true', default=False)

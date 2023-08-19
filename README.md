@@ -46,7 +46,7 @@ Then, preprocess data files are saved in 'preprocessed/Argoverse' for Argoverse 
 ```
 mkdir checkpoints
 # Vanilla HiVT 
-python train.py
+python train.py -n baseline -c configs/nusargo/hivt_nuSArgo_trmenc_mlpdec.yml
 # Ours
-python train.py
+python train.py -n nsde -c configs/nusargo/hivt_nuSArgo_sdesepenc_sdedec.yml
 ```
