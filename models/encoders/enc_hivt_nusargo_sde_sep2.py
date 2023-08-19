@@ -22,11 +22,11 @@ from models.utils.sde_utils import SDiffeqSolver, SDEFunc
 import torchsde
 from models.utils.sdeint import sdeint, sdeint_dual
 
-class LocalEncoderSDESepPara(nn.Module):
+class LocalEncoderSDESepPara2(nn.Module):
 
     def __init__(self,
                  **kwargs) -> None:
-        super(LocalEncoderSDESepPara, self).__init__()
+        super(LocalEncoderSDESepPara2, self).__init__()
 
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -49,10 +49,10 @@ class LocalEncoderSDESepPara(nn.Module):
         self.gru_unit = GRU_Unit(self.embed_dim, self.embed_dim, n_units=self.embed_dim)
 
         sigma, theta, mu = 0.5, 1.0, 0.0
-        post_drift = FFunc(self.embed_dim)
+        post_drift = FFunc(self.embed_dim, num_layers=self.sde_layers)
         prior_drift = HFunc(theta=theta, mu=mu)
-        diffusion_nus= GFunc(self.embed_dim, sigma=sigma)
-        diffusion_Argo2= GFunc(self.embed_dim, sigma=sigma)
+        diffusion_nus= GFunc(self.embed_dim, num_layers=self.sde_layers, sigma=sigma)
+        diffusion_Argo2= GFunc(self.embed_dim, num_layers=self.sde_layers, sigma=sigma)
         self.lsde_func = LSDEFunc(f=post_drift, g_nus=diffusion_nus, g_Argo2=diffusion_Argo2, h=prior_drift, embed_dim=self.embed_dim)
         self.lsde_func.noise_type, self.lsde_func.sde_type = 'diagonal', 'ito'
 
@@ -371,15 +371,21 @@ class LocalEncoderSDESepPara(nn.Module):
 
 class FFunc(nn.Module):
     """Posterior drift."""
-    def __init__(self, embed_dim):
+    def __init__(self, embed_dim, num_layers=2):
         super(FFunc, self).__init__()
-        self.net = nn.Sequential(
-            nn.Linear(embed_dim+2, embed_dim),
-            nn.Tanh(),
-            nn.Linear(embed_dim, embed_dim),
-            nn.Tanh(),
-            nn.Linear(embed_dim, embed_dim)
-        )
+        net_list = []
+        net_list.append(nn.Linear(embed_dim+2, embed_dim))
+        for _ in range(num_layers):
+            net_list.append(nn.Tanh())
+            net_list.append(nn.Linear(embed_dim, embed_dim))
+        # self.net = nn.Sequential(
+        #     nn.Linear(embed_dim+2, embed_dim),
+        #     nn.Tanh(),
+        #     nn.Linear(embed_dim, embed_dim),
+        #     nn.Tanh(),
+        #     nn.Linear(embed_dim, embed_dim)
+        # )
+        self.net = nn.Sequential(*nn.ModuleList(net_list))
 
     def forward(self, t, y):
         # if t.dim() == 0:
@@ -405,16 +411,27 @@ class HFunc(nn.Module):
 
 class GFunc(nn.Module):
     """Diffusion"""
-    def __init__(self, embed_dim, sigma=0.5):
+    def __init__(self, embed_dim, sigma=0.5, num_layers=2):
         super(GFunc, self).__init__()
         # self.sigma = nn.Parameter(torch.tensor([[sigma]]), requires_grad=False)
-        self.net = nn.Sequential(
-            nn.Linear(embed_dim+2, embed_dim),
-            nn.Tanh(),
-            nn.Linear(embed_dim, embed_dim),
-            nn.Tanh(),
-            nn.Linear(embed_dim, 1)
-        )
+
+        net_list = []
+        net_list.append(nn.Linear(embed_dim+2, embed_dim))
+        for _ in range(num_layers-1):
+            net_list.append(nn.Tanh())
+            net_list.append(nn.Linear(embed_dim, embed_dim))
+        net_list.append(nn.Tanh())
+        net_list.append(nn.Linear(embed_dim, 1))
+
+        self.net = nn.Sequential(*nn.ModuleList(net_list))
+
+        # self.net = nn.Sequential(
+        #     nn.Linear(embed_dim+2, embed_dim),
+        #     nn.Tanh(),
+        #     nn.Linear(embed_dim, embed_dim),
+        #     nn.Tanh(),
+        #     nn.Linear(embed_dim, 1)
+        # )
 
     def forward(self, t, y):
         _t = torch.ones(y.size(0), 1) * float(t)

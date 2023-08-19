@@ -88,8 +88,8 @@ datamodule_specific:
     Argo_root: data/argodataset
     nu_dir: preprocessed/nuScenes_hivt
     Argo_dir: preprocessed/Argoverse
-    train_batch_size: 64
-    val_batch_size: 64
+    train_batch_size: 512
+    val_batch_size: 512
     num_workers: 32
     pin_memory: true
     persistent_workers: true

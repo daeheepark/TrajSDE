@@ -22,8 +22,8 @@ model_specific:
     is_gtabs: true
     
 encoder:
-  file_path: models/encoders/enc_hivt_nusargo_sde_sep.py
-  module_name: LocalEncoderSDESepPara
+  file_path: models/encoders/enc_hivt_nusargo_sde_sep2.py
+  module_name: LocalEncoderSDESepPara2
   kwargs:
     max_past_t: 2
     historical_steps: *historical_steps
@@ -43,7 +43,7 @@ encoder:
     atol: &atol 0.001
     method: euler
     adaptive: false
-    
+    sde_layers: 4
 
 aggregator:
   file_path: models/aggregators/agg_hivt.py
@@ -103,8 +103,8 @@ datamodule_specific:
     Argo_root: data/argodataset
     nu_dir: preprocessed/nuScenes_hivt
     Argo_dir: preprocessed/Argoverse
-    train_batch_size: 256
-    val_batch_size: 256
+    train_batch_size: 128
+    val_batch_size: 128
     num_workers: 32
     dataset_file_path: dataset/nuScenes_Argoerse/nuScenes_Argoverse.py
     dataset_module_name: nuArgoDataset
