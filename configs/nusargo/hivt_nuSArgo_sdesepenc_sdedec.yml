@@ -43,7 +43,7 @@ encoder:
     atol: &atol 0.001
     method: euler
     adaptive: false
-    sde_layers: 4
+    sde_layers: 2
 
 aggregator:
   file_path: models/aggregators/agg_hivt.py
