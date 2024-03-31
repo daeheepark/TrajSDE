@@ -1,4 +1,4 @@
-## This is an code implementation of "Improving Transferability for Cross-domain Trajectory Prediction via Neural Stochastic Differential Equation" submitted for AAAI review
+## This is an code implementation of "Improving Transferability for Cross-domain Trajectory Prediction via Neural Stochastic Differential Equation", AAAI'24
 Please follow below steps to run our code
 
 ## 1. Create virtual environment in Anaconda with env.yml
